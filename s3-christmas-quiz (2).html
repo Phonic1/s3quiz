@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S3 Christmas Family Quiz</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', cursive, sans-serif;
+            background: linear-gradient(135deg, #165B33 0%, #BB2528 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        body.high-contrast {
+            background: #000;
+            color: #FFFF00;
+        }
+
+        .container {
+            background: white;
+            border-radius: 30px;
+            padding: 40px;
+            max-width: 1200px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        body.high-contrast .container {
+            background: #000;
+            border: 5px solid #FFFF00;
+        }
+
+        .snowflake {
+            position: absolute;
+            top: -10px;
+            color: white;
+            font-size: 20px;
+            animation: fall linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(100vh);
+            }
+        }
+
+        h1 {
+            color: #BB2528;
+            text-align: center;
+            font-size: 3em;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        body.high-contrast h1 {
+            color: #FFFF00;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        button {
+            background: #165B33;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.3em;
+            border-radius: 15px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        button:hover {
+            transform: scale(1.05);
+            background: #1a7040;
+        }
+
+        body.high-contrast button {
+            background: #FFFF00;
+            color: #000;
+            border: 3px solid #000;
+        }
+
+        .quiz-setup, .quiz-screen, .answers-screen {
+            display: none;
+        }
+
+        .quiz-setup.active, .quiz-screen.active, .answers-screen.active {
+            display: block;
+        }
+
+        .student-assignment {
+            background: #f8f8f8;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            border: 3px solid #165B33;
+        }
+
+        body.high-contrast .student-assignment {
+            background: #000;
+            border-color: #FFFF00;
+        }
+
+        .assignment-item {
+            font-size: 1.5em;
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        .question-display {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .question-text {
+            font-size: 2.5em;
+            color: #165B33;
+            margin-bottom: 40px;
+            line-height: 1.4;
+        }
+
+        body.high-contrast .question-text {
+            color: #FFFF00;
+        }
+
+        .choices {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .choice {
+            background: #BB2528;
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            font-size: 1.8em;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        body.high-contrast .choice {
+            background: #FFFF00;
+            color: #000;
+            border: 3px solid #000;
+        }
+
+        .reader-name {
+            font-size: 1.5em;
+            color: #BB2528;
+            margin-bottom: 20px;
+        }
+
+        body.high-contrast .reader-name {
+            color: #FFFF00;
+        }
+
+        .flashcard {
+            width: 600px;
+            height: 400px;
+            margin: 50px auto;
+            perspective: 1000px;
+            cursor: pointer;
+        }
+
+        .flashcard-inner {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transition: transform 0.8s;
+            transform-style: preserve-3d;
+        }
+
+        .flashcard.flipped .flashcard-inner {
+            transform: rotateY(180deg);
+        }
+
+        .flashcard-front, .flashcard-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.5em;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .flashcard-front {
+            background: #165B33;
+            color: white;
+        }
+
+        .flashcard-back {
+            background: #BB2528;
+            color: white;
+            transform: rotateY(180deg);
+        }
+
+        body.high-contrast .flashcard-front,
+        body.high-contrast .flashcard-back {
+            background: #000;
+            color: #FFFF00;
+            border: 5px solid #FFFF00;
+        }
+
+        .answer-question {
+            font-size: 1.8em;
+            color: #165B33;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        body.high-contrast .answer-question {
+            color: #FFFF00;
+        }
+
+        .zoom-level {
+            font-size: 1em;
+        }
+
+        .zoom-level.zoom-1 {
+            font-size: 1.2em;
+        }
+
+        .zoom-level.zoom-2 {
+            font-size: 1.4em;
+        }
+
+        .zoom-level.zoom-3 {
+            font-size: 1.6em;
+        }
+
+        .celebration {
+            text-align: center;
+            font-size: 3em;
+            color: #BB2528;
+            animation: bounce 1s ease infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .print-sheet {
+            display: none;
+        }
+
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .print-sheet, .print-sheet * {
+                visibility: visible;
+            }
+            .print-sheet {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                display: block;
+                background: white;
+                padding: 20px;
+            }
+            .snowflake {
+                display: none;
+            }
+        }
+
+        .print-question {
+            margin-bottom: 30px;
+            page-break-inside: avoid;
+        }
+
+        .print-question h3 {
+            color: #165B33;
+            margin-bottom: 10px;
+        }
+
+        .print-choices {
+            margin-left: 20px;
+        }
+
+        .answer-space {
+            margin-top: 10px;
+            border-bottom: 2px solid #000;
+            height: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Snowflakes -->
+        <div class="snowflakes-container"></div>
+
+        <!-- Welcome Screen -->
+        <div class="quiz-setup active">
+            <h1>🎄 S3 Christmas Family Quiz 🎅</h1>
+            
+            <div class="controls">
+                <button onclick="printQuestions()">🖨️ Print Question Sheet</button>
+                <button onclick="toggleSound()">🔊 Sound: <span id="sound-status">ON</span></button>
+                <button onclick="toggleContrast()">🌗 High Contrast</button>
+                <button onclick="zoomIn()">🔍 Zoom In</button>
+                <button onclick="zoomOut()">🔍 Zoom Out</button>
+            </div>
+
+            <div style="text-align: center; margin: 40px 0;">
+                <button onclick="assignQuestions()" style="font-size: 1.5em; padding: 25px 50px; background: #BB2528;">
+                    🎁 Start Quiz Setup
+                </button>
+            </div>
+        </div>
+
+        <!-- Question Assignment Screen -->
+        <div class="quiz-screen">
+            <h1>🎄 Question Time! 🎅</h1>
+            
+            <div class="question-display" id="question-display"></div>
+
+            <div style="text-align: center; margin-top: 30px;">
+                <button onclick="nextQuestion()" id="next-btn" style="font-size: 1.5em; padding: 20px 40px; background: #BB2528;">
+                    Next Question ▶️
+                </button>
+            </div>
+        </div>
+
+        <!-- Answers Screen -->
+        <div class="answers-screen">
+            <h1>🎁 Answer Time! 🎁</h1>
+            
+            <div class="answer-question" id="answer-question"></div>
+            
+            <div class="flashcard" id="flashcard" onclick="flipCard()">
+                <div class="flashcard-inner">
+                    <div class="flashcard-front">
+                        <div>Click to reveal answer! 🎄</div>
+                    </div>
+                    <div class="flashcard-back" id="answer-text">
+                        Answer
+                    </div>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 30px;">
+                <button onclick="nextAnswer()" id="next-answer-btn" style="font-size: 1.5em; padding: 20px 40px; background: #165B33;">
+                    Next Answer ▶️
+                </button>
+            </div>
+        </div>
+
+        <!-- Print Sheet -->
+        <div class="print-sheet" id="print-sheet">
+            <h1>S3 Christmas Family Quiz - Answer Sheet</h1>
+            <p><strong>Family Name:</strong> _______________________________</p>
+            <div id="print-questions"></div>
+        </div>
+    </div>
+
+    <script>
+        const students = ['Bella', 'Grace', 'Kade', 'Claudia', 'Locky', 'Holly'];
+        
+        const questions = [
+            { student: 'Bella', question: "What is Bella's dog's name?", choices: ['Mila', 'Max', 'Charlie'], answer: 'Mila' },
+            { student: 'Bella', question: "How old is Bella's dog?", choices: ['5', '7', '9'], answer: '7' },
+            { student: 'Bella', question: "Which concert did Bella go to last week?", choices: ['Lewis Capaldi', 'Ed Sheeran', 'Taylor Swift'], answer: 'Lewis Capaldi' },
+            { student: 'Grace', question: "What is Grace's pug's name?", choices: ['Luna', 'Zorko', 'Nanna'], answer: 'Zorko' },
+            { student: 'Grace', question: "How old is Grace?", choices: ['16', '18', '50'], answer: '16' },
+            { student: 'Grace', question: "Who loves mum?", choices: ['Dad', 'Noah', 'Grace'], answer: 'Grace' },
+            { student: 'Kade', question: "Which S3 student likes bowling?", choices: ['Kade', 'Locky', 'Grace'], answer: 'Kade' },
+            { student: 'Kade', question: "Which S3 student likes going to the park?", choices: ['Kade', 'Bella', 'Holly'], answer: 'Kade' },
+            { student: 'Kade', question: "How many pins are in bowling?", choices: ['8', '10', '12'], answer: '10' },
+            { student: 'Claudia', question: "How many button jars does Claudia have?", choices: ['4', '2', '6'], answer: '4' },
+            { student: 'Claudia', question: "How many dogs does Claudia have?", choices: ['2', '3', '4'], answer: '3' },
+            { student: 'Claudia', question: "How many Christmas trees does Claudia have at home?", choices: ['1', '2', '3'], answer: '1' },
+            { student: 'Locky', question: "Where does Santa come from?", choices: ['North Pole', 'The Beach', 'The Mountains'], answer: 'North Pole' },
+            { student: 'Locky', question: "How many dogs does Locky have at home today?", choices: ['2', '100', '0'], answer: '2' },
+            { student: 'Holly', question: "What time does the sun go down?", choices: ['7am', '6pm', '8.38pm'], answer: '8.38pm' },
+            { student: 'Holly', question: "Does it snow in Australia?", choices: ['Yes', 'No', 'Sometimes'], answer: 'Yes' },
+            { student: 'Holly', question: "What year was the PlayStation made?", choices: ['1994', '1998', '2000'], answer: '1994' }
+        ];
+
+        let currentQuestionIndex = 0;
+        let currentAnswerIndex = 0;
+        let soundEnabled = true;
+        let zoomLevel = 0;
+        let assignments = {};
+        let audioContext;
+
+        // Create snowflakes
+        function createSnowflakes() {
+            const container = document.querySelector('.snowflakes-container');
+            for (let i = 0; i < 20; i++) {
+                const snowflake = document.createElement('div');
+                snowflake.className = 'snowflake';
+                snowflake.innerHTML = '❄';
+                snowflake.style.left = Math.random() * 100 + '%';
+                snowflake.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                snowflake.style.animationDelay = Math.random() * 5 + 's';
+                container.appendChild(snowflake);
+            }
+        }
+
+        createSnowflakes();
+
+        function playSound(frequency, duration) {
+            if (!soundEnabled) return;
+            
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.frequency.value = frequency;
+            oscillator.type = 'sine';
+
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('sound-status').textContent = soundEnabled ? 'ON' : 'OFF';
+            if (soundEnabled) playSound(523.25, 0.2);
+        }
+
+        function toggleContrast() {
+            document.body.classList.toggle('high-contrast');
+            playSound(440, 0.2);
+        }
+
+        function zoomIn() {
+            if (zoomLevel < 3) {
+                zoomLevel++;
+                updateZoom();
+                playSound(523.25, 0.15);
+            }
+        }
+
+        function zoomOut() {
+            if (zoomLevel > 0) {
+                zoomLevel--;
+                updateZoom();
+                playSound(392, 0.15);
+            }
+        }
+
+        function updateZoom() {
+            document.querySelector('.container').className = 'container zoom-level zoom-' + zoomLevel;
+        }
+
+        function assignQuestions() {
+            playSound(659.25, 0.3);
+            
+            // Assign questions ensuring students don't read their own
+            const studentList = [...students];
+            assignments = {};
+            
+            questions.forEach((q, index) => {
+                const availableReaders = studentList.filter(s => s !== q.student);
+                const reader = availableReaders[Math.floor(Math.random() * availableReaders.length)];
+                assignments[index] = reader;
+            });
+            
+            document.querySelector('.quiz-setup').classList.remove('active');
+            document.querySelector('.quiz-screen').classList.add('active');
+        }
+
+        function displayQuestion(index) {
+            const q = questions[index];
+            const display = document.getElementById('question-display');
+            
+            display.innerHTML = `
+                <div class="question-text">${q.question}</div>
+                <div class="choices">
+                    ${q.choices.map(choice => `<div class="choice">${choice}</div>`).join('')}
+                </div>
+            `;
+        }
+
+        function nextQuestion() {
+            playSound(523.25, 0.2);
+            
+            if (currentQuestionIndex < questions.length) {
+                displayQuestion(currentQuestionIndex);
+                currentQuestionIndex++;
+            } else {
+                startAnswers();
+            }
+        }
+
+        function startAnswers() {
+            playSound(783.99, 0.5);
+            document.querySelector('.quiz-screen').classList.remove('active');
+            document.querySelector('.answers-screen').classList.add('active');
+            
+            displayAnswer(0);
+        }
+
+        function displayAnswer(index) {
+            const q = questions[index];
+            document.getElementById('answer-question').textContent = `Question ${index + 1}: ${q.question}`;
+            document.getElementById('answer-text').innerHTML = `<strong>${q.answer}</strong>`;
+            
+            const flashcard = document.getElementById('flashcard');
+            flashcard.classList.remove('flipped');
+        }
+
+        function flipCard() {
+            playSound(659.25, 0.3);
+            document.getElementById('flashcard').classList.toggle('flipped');
+        }
+
+        function nextAnswer() {
+            playSound(523.25, 0.2);
+            currentAnswerIndex++;
+            
+            if (currentAnswerIndex < questions.length) {
+                displayAnswer(currentAnswerIndex);
+            } else {
+                showCelebration();
+            }
+        }
+
+        function showCelebration() {
+            playSound(523.25, 0.2);
+            playSound(659.25, 0.2);
+            playSound(783.99, 0.3);
+            
+            document.querySelector('.answers-screen').innerHTML = `
+                <div class="celebration">
+                    🎉 Well Done Everyone! 🎉<br>
+                    🎄 Merry Christmas! 🎅<br>
+                    ⭐ You're All Stars! ⭐
+                </div>
+            `;
+        }
+
+        function printQuestions() {
+            const printContainer = document.getElementById('print-questions');
+            printContainer.innerHTML = '';
+            
+            questions.forEach((q, index) => {
+                const div = document.createElement('div');
+                div.className = 'print-question';
+                div.innerHTML = `
+                    <h3>Question ${index + 1}</h3>
+                    <p><strong>${q.question}</strong></p>
+                    <div class="print-choices">
+                        ${q.choices.map(choice => `<p>○ ${choice}</p>`).join('')}
+                    </div>
+                    <p><strong>Your Answer:</strong></p>
+                    <div class="answer-space"></div>
+                `;
+                printContainer.appendChild(div);
+            });
+            
+            window.print();
+        }
+
+        // Initialize first question display
+        displayQuestion(0);
+    </script>
+</body>
+</html>
